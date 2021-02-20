@@ -29,6 +29,17 @@ namespace DotNetGraph.Compiler
             {
                 new DotNodeShapeAttributeCompiler(),
                 new DotNodeStyleAttributeCompiler(),
+                new DotEdgeStyleAttributeCompiler(),
+                new DotFontColorAttributeCompiler(),
+                new DotFillColorAttributeCompiler(),
+                new DotColorAttributeCompiler(),
+                new DotLabelAttributeCompiler(),
+                new DotNodeWidthAttributeCompiler(),
+                new DotNodeHeightAttributeCompiler(),
+                new DotPenWidthAttributeCompiler(),
+                new DotEdgeArrowTailAttributeCompiler(),
+                new DotEdgeArrowHeadAttributeCompiler(),
+                new DotPositionAttributeCompiler(),
             };
         }
 
@@ -257,6 +268,94 @@ namespace DotNetGraph.Compiler
                 return $"style={SurroundStringWithQuotes(attribute.Style.FlagsToString(), shouldFormat)}";
             }
         }
+        
+        public class DotEdgeStyleAttributeCompiler : FormattedAttributeCompilerBase<DotEdgeStyleAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotEdgeStyleAttribute attribute, bool shouldFormat)
+            {
+                return $"style={SurroundStringWithQuotes(attribute.Style.FlagsToString(), shouldFormat)}";
+            }
+        }
+        
+        public class DotFontColorAttributeCompiler : AttributeCompilerBase<DotFontColorAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotFontColorAttribute attribute)
+            {
+                return $"fontcolor=\"{attribute.ToHex()}\"";
+            }
+        }
+        
+        public class DotFillColorAttributeCompiler : AttributeCompilerBase<DotFillColorAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotFillColorAttribute attribute)
+            {
+                return $"fillcolor=\"{attribute.ToHex()}\"";
+            }
+        }
+        
+        public class DotColorAttributeCompiler : AttributeCompilerBase<DotColorAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotColorAttribute attribute)
+            {
+                return $"color=\"{attribute.ToHex()}\"";
+            }
+        }
+        
+        public class DotLabelAttributeCompiler : FormattedAttributeCompilerBase<DotLabelAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotLabelAttribute attribute, bool shouldFormat)
+            {
+                return $"label={SurroundStringWithQuotes(attribute.Text, shouldFormat)}";
+            }
+        }
+        
+        public class DotNodeWidthAttributeCompiler : AttributeCompilerBase<DotNodeWidthAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotNodeWidthAttribute attribute)
+            {
+                return string.Format(CultureInfo.InvariantCulture, "width={0:F2}", attribute.Value);
+            }
+        }
+        
+        public class DotNodeHeightAttributeCompiler : AttributeCompilerBase<DotNodeHeightAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotNodeHeightAttribute attribute)
+            {
+                return string.Format(CultureInfo.InvariantCulture, "height={0:F2}", attribute.Value);
+            }
+        }
+        
+        public class DotPenWidthAttributeCompiler : AttributeCompilerBase<DotPenWidthAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotPenWidthAttribute attribute)
+            {
+                return string.Format(CultureInfo.InvariantCulture, "penwidth={0:F2}", attribute.Value);
+            }
+        }
+        
+        public class DotEdgeArrowTailAttributeCompiler : AttributeCompilerBase<DotEdgeArrowTailAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotEdgeArrowTailAttribute attribute)
+            {
+                return $"arrowtail={attribute.ArrowType.ToString().ToLowerInvariant()}";
+            }
+        }
+        
+        public class DotEdgeArrowHeadAttributeCompiler : AttributeCompilerBase<DotEdgeArrowHeadAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotEdgeArrowHeadAttribute attribute)
+            {
+                return $"arrowhead={attribute.ArrowType.ToString().ToLowerInvariant()}";
+            }
+        }
+        
+        public class DotPositionAttributeCompiler : AttributeCompilerBase<DotPositionAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotPositionAttribute attribute)
+            {
+                return $"pos=\"{attribute.Position.X},{attribute.Position.Y}!\"";
+            }
+        }
 
         private void CompileAttributes(StringBuilder builder, ReadOnlyCollection<IDotAttribute> attributes, bool formatStrings)
         {
@@ -279,54 +378,12 @@ namespace DotNetGraph.Compiler
                 {
                     attributeValues.Add(value);
                 }
-
-                else if (attribute is DotEdgeStyleAttribute edgeStyleAttribute)
-                {
-                    attributeValues.Add($"style={SurroundStringWithQuotes(edgeStyleAttribute.Style.FlagsToString(), formatStrings)}");
-                }
-                else if (attribute is DotFontColorAttribute fontColorAttribute)
-                {
-                    attributeValues.Add($"fontcolor=\"{fontColorAttribute.ToHex()}\"");
-                }
-                else if (attribute is DotFillColorAttribute fillColorAttribute)
-                {
-                    attributeValues.Add($"fillcolor=\"{fillColorAttribute.ToHex()}\"");
-                }
-                else if (attribute is DotColorAttribute colorAttribute)
-                {
-                    attributeValues.Add($"color=\"{colorAttribute.ToHex()}\"");
-                }
-                else if (attribute is DotLabelAttribute labelAttribute)
-                {
-                    attributeValues.Add($"label={SurroundStringWithQuotes(labelAttribute.Text, formatStrings)}");
-                }
-                else if (attribute is DotNodeWidthAttribute nodeWidthAttribute)
-                {
-                    attributeValues.Add(string.Format(CultureInfo.InvariantCulture, "width={0:F2}", nodeWidthAttribute.Value));
-                }
-                else if (attribute is DotNodeHeightAttribute nodeHeightAttribute)
-                {
-                    attributeValues.Add(string.Format(CultureInfo.InvariantCulture, "height={0:F2}", nodeHeightAttribute.Value));
-                }
-                else if (attribute is DotPenWidthAttribute dotPenwidthAttribute)
-                {
-                    attributeValues.Add(string.Format(CultureInfo.InvariantCulture, "penwidth={0:F2}", dotPenwidthAttribute.Value));
-                }
-                else if (attribute is DotEdgeArrowTailAttribute edgeArrowTailAttribute)
-                {
-                    attributeValues.Add($"arrowtail={edgeArrowTailAttribute.ArrowType.ToString().ToLowerInvariant()}");
-                }
-                else if (attribute is DotEdgeArrowHeadAttribute edgeArrowHeadAttribute)
-                {
-                    attributeValues.Add($"arrowhead={edgeArrowHeadAttribute.ArrowType.ToString().ToLowerInvariant()}");
-                }
-                else if (attribute is DotPositionAttribute positionAttribute && positionAttribute.Position != null)
-                {
-                    attributeValues.Add($"pos=\"{positionAttribute.Position.X},{positionAttribute.Position.Y}!\"");
-                }
                 else
                 {
-                    throw new DotException($"Attribute type not supported: {attribute.GetType()}");
+                    throw new DotException(
+                        $"Attribute type not supported: {attribute.GetType()}."
+                        + $"Add an implementation of {nameof(IAttributeCompiler)} to {nameof(AttributeCompilers)}, "
+                        + $"which is supported by {nameof(AttributeCompilerUnionExtensions.Convert)}.");
                 }
             }
 
