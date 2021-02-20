@@ -23,7 +23,7 @@ namespace DotNetGraph.Core
             return default;
         }
 
-        protected void SetAttribute<T>(T value) where T : IDotAttribute
+        public void SetAttribute<T>(T value) where T : IDotAttribute
         {
             if (value != null)
                 _attributes[typeof(T).Name] = value;

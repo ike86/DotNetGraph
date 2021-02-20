@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using DotNetGraph.Attributes;
@@ -21,7 +22,13 @@ namespace DotNetGraph.Compiler
         public DotCompiler(DotGraph graph)
         {
             _graph = graph;
+            AttributeCompilers = new List<IAttributeCompiler>
+            {
+                new DotNodeShapeAttributeCompiler(),
+            };
         }
+
+        public ICollection<IAttributeCompiler> AttributeCompilers { get; }
 
         public string Compile(bool indented = false, bool formatStrings = true)
         {
@@ -185,6 +192,35 @@ namespace DotNetGraph.Compiler
             builder.AddIndentationNewLine(indented);
         }
 
+        public interface IAttributeCompiler
+        {
+            string Compile(IDotAttribute attribute);
+        }
+
+        public abstract class AttributeCompilerBase<T> : IAttributeCompiler
+            where T : IDotAttribute
+        {
+            public string Compile(IDotAttribute attribute)
+            {
+                if (attribute is T matchingAttribute)
+                {
+                    return OnAttributeTypeMatch(matchingAttribute);
+                }
+
+                return null;
+            }
+
+            protected abstract string OnAttributeTypeMatch(T attribute);
+        }
+        
+        public class DotNodeShapeAttributeCompiler : AttributeCompilerBase<DotNodeShapeAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotNodeShapeAttribute attribute)
+            {
+                return $"shape={attribute.Shape.ToString().ToLowerInvariant()}";
+            }
+        }
+
         private void CompileAttributes(StringBuilder builder, ReadOnlyCollection<IDotAttribute> attributes, bool formatStrings)
         {
             if (attributes.Count == 0)
@@ -196,10 +232,11 @@ namespace DotNetGraph.Compiler
 
             foreach (var attribute in attributes)
             {
-                if (attribute is DotNodeShapeAttribute nodeShapeAttribute)
+                if (AttributeCompilers.Select(c => c.Compile(attribute)).FirstOrDefault(x => x != null) is string value)
                 {
-                    attributeValues.Add($"shape={nodeShapeAttribute.Shape.ToString().ToLowerInvariant()}");
+                    attributeValues.Add(value);
                 }
+                
                 else if (attribute is DotNodeStyleAttribute nodeStyleAttribute)
                 {
                     attributeValues.Add($"style={SurroundStringWithQuotes(nodeStyleAttribute.Style.FlagsToString(), formatStrings)}");
