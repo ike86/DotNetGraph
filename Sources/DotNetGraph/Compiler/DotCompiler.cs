@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -22,13 +25,14 @@ namespace DotNetGraph.Compiler
         public DotCompiler(DotGraph graph)
         {
             _graph = graph;
-            AttributeCompilers = new List<IAttributeCompiler>
+            AttributeCompilers = new List<IAttributeCompilerUnion>
             {
                 new DotNodeShapeAttributeCompiler(),
+                new DotNodeStyleAttributeCompiler(),
             };
         }
 
-        public ICollection<IAttributeCompiler> AttributeCompilers { get; }
+        public ICollection<IAttributeCompilerUnion> AttributeCompilers { get; }
 
         public string Compile(bool indented = false, bool formatStrings = true)
         {
@@ -192,7 +196,11 @@ namespace DotNetGraph.Compiler
             builder.AddIndentationNewLine(indented);
         }
 
-        public interface IAttributeCompiler
+        public interface IAttributeCompilerUnion
+        {
+        }
+
+        public interface IAttributeCompiler : IAttributeCompilerUnion
         {
             string Compile(IDotAttribute attribute);
         }
@@ -212,12 +220,41 @@ namespace DotNetGraph.Compiler
 
             protected abstract string OnAttributeTypeMatch(T attribute);
         }
+
+        public interface IFormattedAttributeCompiler : IAttributeCompilerUnion
+        {
+            string Compile(IDotAttribute attribute, bool shouldFormat);
+        }
+        
+        public abstract class FormattedAttributeCompilerBase<T> : IFormattedAttributeCompiler
+            where T : IDotAttribute
+        {
+            public string Compile(IDotAttribute attribute, bool shouldFormat)
+            {
+                if (attribute is T matchingAttribute)
+                {
+                    return OnAttributeTypeMatch(matchingAttribute, shouldFormat);
+                }
+
+                return null;
+            }
+
+            protected abstract string OnAttributeTypeMatch(T attribute, bool shouldFormat);
+        }
         
         public class DotNodeShapeAttributeCompiler : AttributeCompilerBase<DotNodeShapeAttribute>
         {
             protected override string OnAttributeTypeMatch(DotNodeShapeAttribute attribute)
             {
                 return $"shape={attribute.Shape.ToString().ToLowerInvariant()}";
+            }
+        }
+        
+        public class DotNodeStyleAttributeCompiler : FormattedAttributeCompilerBase<DotNodeStyleAttribute>
+        {
+            protected override string OnAttributeTypeMatch(DotNodeStyleAttribute attribute, bool shouldFormat)
+            {
+                return $"style={SurroundStringWithQuotes(attribute.Style.FlagsToString(), shouldFormat)}";
             }
         }
 
@@ -232,15 +269,17 @@ namespace DotNetGraph.Compiler
 
             foreach (var attribute in attributes)
             {
-                if (AttributeCompilers.Select(c => c.Compile(attribute)).FirstOrDefault(x => x != null) is string value)
+                if (AttributeCompilers
+                    .Select(c => c
+                        .Convert(
+                            attributeCompiler =>  attributeCompiler.Compile(attribute),
+                            formattedAttributeCompiler => formattedAttributeCompiler.Compile(attribute, formatStrings)))
+                        .FirstOrDefault(x => x != null)
+                    is string value)
                 {
                     attributeValues.Add(value);
                 }
-                
-                else if (attribute is DotNodeStyleAttribute nodeStyleAttribute)
-                {
-                    attributeValues.Add($"style={SurroundStringWithQuotes(nodeStyleAttribute.Style.FlagsToString(), formatStrings)}");
-                }
+
                 else if (attribute is DotEdgeStyleAttribute edgeStyleAttribute)
                 {
                     attributeValues.Add($"style={SurroundStringWithQuotes(edgeStyleAttribute.Style.FlagsToString(), formatStrings)}");
@@ -312,6 +351,29 @@ namespace DotNetGraph.Compiler
                 .Replace("\"", "\\\"")
                 .Replace("\r\n", "\\n")
                 .Replace("\n", "\\n");
+        }
+    }
+        
+    public static class AttributeCompilerUnionExtensions
+    {
+        public static TResult Convert<TResult>(
+            this DotCompiler.IAttributeCompilerUnion attributeCompiler,
+            Func<DotCompiler.IAttributeCompiler, TResult> caseAttributeCompiler,
+            Func<DotCompiler.IFormattedAttributeCompiler, TResult> caseFormattedAttributeCompiler)
+        {
+            if (attributeCompiler is DotCompiler.IAttributeCompiler x)
+            {
+                return caseAttributeCompiler(x);
+            }
+
+            if (attributeCompiler is DotCompiler.IFormattedAttributeCompiler y)
+            {
+                return caseFormattedAttributeCompiler(y);
+            }
+
+            throw new ArgumentOutOfRangeException(
+                $"{nameof(DotCompiler.IAttributeCompilerUnion)} is a closed hierarchy. "
+                + $"{attributeCompiler.GetType().FullName} is not supported.");
         }
     }
 }
