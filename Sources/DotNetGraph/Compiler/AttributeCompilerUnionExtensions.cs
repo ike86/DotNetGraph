@@ -1,0 +1,27 @@
+﻿using System;
+
+namespace DotNetGraph.Compiler
+{
+    public static class AttributeCompilerUnionExtensions
+    {
+        public static TResult Convert<TResult>(
+            this IAttributeCompilerUnion attributeCompiler,
+            Func<IAttributeCompiler, TResult> caseAttributeCompiler,
+            Func<IFormattedAttributeCompiler, TResult> caseFormattedAttributeCompiler)
+        {
+            if (attributeCompiler is IAttributeCompiler x)
+            {
+                return caseAttributeCompiler(x);
+            }
+
+            if (attributeCompiler is IFormattedAttributeCompiler y)
+            {
+                return caseFormattedAttributeCompiler(y);
+            }
+
+            throw new ArgumentOutOfRangeException(
+                $"{nameof(IAttributeCompilerUnion)} is a closed hierarchy. "
+                + $"{attributeCompiler.GetType().FullName} is not supported.");
+        }
+    }
+}

@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -27,19 +25,19 @@ namespace DotNetGraph.Compiler
             _graph = graph;
             AttributeCompilers = new List<IAttributeCompilerUnion>
             {
-                new DotNodeShapeAttributeCompiler(),
-                new DotNodeStyleAttributeCompiler(),
-                new DotEdgeStyleAttributeCompiler(),
-                new DotFontColorAttributeCompiler(),
-                new DotFillColorAttributeCompiler(),
-                new DotColorAttributeCompiler(),
-                new DotLabelAttributeCompiler(),
-                new DotNodeWidthAttributeCompiler(),
-                new DotNodeHeightAttributeCompiler(),
-                new DotPenWidthAttributeCompiler(),
-                new DotEdgeArrowTailAttributeCompiler(),
-                new DotEdgeArrowHeadAttributeCompiler(),
-                new DotPositionAttributeCompiler(),
+                new NodeShapeAttributeCompiler(),
+                new NodeStyleAttributeCompiler(),
+                new EdgeStyleAttributeCompiler(),
+                new FontColorAttributeCompiler(),
+                new FillColorAttributeCompiler(),
+                new ColorAttributeCompiler(),
+                new LabelAttributeCompiler(),
+                new NodeWidthAttributeCompiler(),
+                new NodeHeightAttributeCompiler(),
+                new PenWidthAttributeCompiler(),
+                new EdgeArrowTailAttributeCompiler(),
+                new EdgeArrowHeadAttributeCompiler(),
+                new PositionAttributeCompiler(),
             };
         }
 
@@ -207,156 +205,6 @@ namespace DotNetGraph.Compiler
             builder.AddIndentationNewLine(indented);
         }
 
-        public interface IAttributeCompilerUnion
-        {
-        }
-
-        public interface IAttributeCompiler : IAttributeCompilerUnion
-        {
-            string Compile(IDotAttribute attribute);
-        }
-
-        public abstract class AttributeCompilerBase<T> : IAttributeCompiler
-            where T : IDotAttribute
-        {
-            public string Compile(IDotAttribute attribute)
-            {
-                if (attribute is T matchingAttribute)
-                {
-                    return OnAttributeTypeMatch(matchingAttribute);
-                }
-
-                return null;
-            }
-
-            protected abstract string OnAttributeTypeMatch(T attribute);
-        }
-
-        public interface IFormattedAttributeCompiler : IAttributeCompilerUnion
-        {
-            string Compile(IDotAttribute attribute, bool shouldFormat);
-        }
-        
-        public abstract class FormattedAttributeCompilerBase<T> : IFormattedAttributeCompiler
-            where T : IDotAttribute
-        {
-            public string Compile(IDotAttribute attribute, bool shouldFormat)
-            {
-                if (attribute is T matchingAttribute)
-                {
-                    return OnAttributeTypeMatch(matchingAttribute, shouldFormat);
-                }
-
-                return null;
-            }
-
-            protected abstract string OnAttributeTypeMatch(T attribute, bool shouldFormat);
-        }
-        
-        public class DotNodeShapeAttributeCompiler : AttributeCompilerBase<DotNodeShapeAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotNodeShapeAttribute attribute)
-            {
-                return $"shape={attribute.Shape.ToString().ToLowerInvariant()}";
-            }
-        }
-        
-        public class DotNodeStyleAttributeCompiler : FormattedAttributeCompilerBase<DotNodeStyleAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotNodeStyleAttribute attribute, bool shouldFormat)
-            {
-                return $"style={SurroundStringWithQuotes(attribute.Style.FlagsToString(), shouldFormat)}";
-            }
-        }
-        
-        public class DotEdgeStyleAttributeCompiler : FormattedAttributeCompilerBase<DotEdgeStyleAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotEdgeStyleAttribute attribute, bool shouldFormat)
-            {
-                return $"style={SurroundStringWithQuotes(attribute.Style.FlagsToString(), shouldFormat)}";
-            }
-        }
-        
-        public class DotFontColorAttributeCompiler : AttributeCompilerBase<DotFontColorAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotFontColorAttribute attribute)
-            {
-                return $"fontcolor=\"{attribute.ToHex()}\"";
-            }
-        }
-        
-        public class DotFillColorAttributeCompiler : AttributeCompilerBase<DotFillColorAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotFillColorAttribute attribute)
-            {
-                return $"fillcolor=\"{attribute.ToHex()}\"";
-            }
-        }
-        
-        public class DotColorAttributeCompiler : AttributeCompilerBase<DotColorAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotColorAttribute attribute)
-            {
-                return $"color=\"{attribute.ToHex()}\"";
-            }
-        }
-        
-        public class DotLabelAttributeCompiler : FormattedAttributeCompilerBase<DotLabelAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotLabelAttribute attribute, bool shouldFormat)
-            {
-                return $"label={SurroundStringWithQuotes(attribute.Text, shouldFormat)}";
-            }
-        }
-        
-        public class DotNodeWidthAttributeCompiler : AttributeCompilerBase<DotNodeWidthAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotNodeWidthAttribute attribute)
-            {
-                return string.Format(CultureInfo.InvariantCulture, "width={0:F2}", attribute.Value);
-            }
-        }
-        
-        public class DotNodeHeightAttributeCompiler : AttributeCompilerBase<DotNodeHeightAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotNodeHeightAttribute attribute)
-            {
-                return string.Format(CultureInfo.InvariantCulture, "height={0:F2}", attribute.Value);
-            }
-        }
-        
-        public class DotPenWidthAttributeCompiler : AttributeCompilerBase<DotPenWidthAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotPenWidthAttribute attribute)
-            {
-                return string.Format(CultureInfo.InvariantCulture, "penwidth={0:F2}", attribute.Value);
-            }
-        }
-        
-        public class DotEdgeArrowTailAttributeCompiler : AttributeCompilerBase<DotEdgeArrowTailAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotEdgeArrowTailAttribute attribute)
-            {
-                return $"arrowtail={attribute.ArrowType.ToString().ToLowerInvariant()}";
-            }
-        }
-        
-        public class DotEdgeArrowHeadAttributeCompiler : AttributeCompilerBase<DotEdgeArrowHeadAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotEdgeArrowHeadAttribute attribute)
-            {
-                return $"arrowhead={attribute.ArrowType.ToString().ToLowerInvariant()}";
-            }
-        }
-        
-        public class DotPositionAttributeCompiler : AttributeCompilerBase<DotPositionAttribute>
-        {
-            protected override string OnAttributeTypeMatch(DotPositionAttribute attribute)
-            {
-                return $"pos=\"{attribute.Position.X},{attribute.Position.Y}!\"";
-            }
-        }
-
         private void CompileAttributes(StringBuilder builder, ReadOnlyCollection<IDotAttribute> attributes, bool formatStrings)
         {
             if (attributes.Count == 0)
@@ -408,29 +256,6 @@ namespace DotNetGraph.Compiler
                 .Replace("\"", "\\\"")
                 .Replace("\r\n", "\\n")
                 .Replace("\n", "\\n");
-        }
-    }
-        
-    public static class AttributeCompilerUnionExtensions
-    {
-        public static TResult Convert<TResult>(
-            this DotCompiler.IAttributeCompilerUnion attributeCompiler,
-            Func<DotCompiler.IAttributeCompiler, TResult> caseAttributeCompiler,
-            Func<DotCompiler.IFormattedAttributeCompiler, TResult> caseFormattedAttributeCompiler)
-        {
-            if (attributeCompiler is DotCompiler.IAttributeCompiler x)
-            {
-                return caseAttributeCompiler(x);
-            }
-
-            if (attributeCompiler is DotCompiler.IFormattedAttributeCompiler y)
-            {
-                return caseFormattedAttributeCompiler(y);
-            }
-
-            throw new ArgumentOutOfRangeException(
-                $"{nameof(DotCompiler.IAttributeCompilerUnion)} is a closed hierarchy. "
-                + $"{attributeCompiler.GetType().FullName} is not supported.");
         }
     }
 }
