@@ -8,5 +8,14 @@ namespace DotNetGraph.Extensions
         {
             return new DotCompiler(graph).Compile(indented, formatStrings);
         }
+        
+        public static string Compile(
+            this DotGraph graph,
+            CompilerSettings settings)
+        {
+            var compiler = new DotCompiler(graph);
+            settings.ConfigureAttributeCompilers(compiler.AttributeCompilers);
+            return compiler.Compile(settings.IsIndented, settings.ShouldFormatStrings);
+        }
     }
 }

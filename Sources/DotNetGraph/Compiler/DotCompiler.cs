@@ -250,7 +250,7 @@ namespace DotNetGraph.Compiler
         {
             if (!format)
                 return value;
-
+        
             return value
                 .Replace("\\", "\\\\")
                 .Replace("\"", "\\\"")
