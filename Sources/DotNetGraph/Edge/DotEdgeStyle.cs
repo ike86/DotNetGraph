@@ -8,6 +8,7 @@ namespace DotNetGraph.Edge
         Solid = 1,
         Dashed = 2,
         Dotted = 4,
-        Bold = 8
+        Bold = 8,
+        Invis = 16,
     }
 }
