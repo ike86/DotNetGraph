@@ -34,7 +34,7 @@ namespace DotNetGraph.Edge
             set => SetAttribute(value);
         }
 
-        public DotEdgeStyleAttribute Style
+        public DotEdgeStyleAttribute? Style
         {
             get => GetAttribute<DotEdgeStyleAttribute>();
             set => SetAttribute(value);
