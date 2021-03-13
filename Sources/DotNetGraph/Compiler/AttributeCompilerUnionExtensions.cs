@@ -20,7 +20,7 @@ namespace DotNetGraph.Compiler
             }
 
             throw new ArgumentOutOfRangeException(
-                $"{nameof(IAttributeCompilerUnion)} is a closed hierarchy. "
+                $"{nameof(IAttributeCompilerUnion)} is a closed hierarchy. " // TODO it is not closed and probably not a union
                 + $"{attributeCompiler.GetType().FullName} is not supported.");
         }
     }
