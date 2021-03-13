@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -228,7 +229,7 @@ namespace DotNetGraph.Compiler
                 }
                 else
                 {
-                    throw new DotException(
+                    Console.WriteLine(
                         $"Attribute type not supported: {attribute.GetType()}."
                         + $"Add an implementation of {nameof(IAttributeCompiler)} to {nameof(AttributeCompilers)}, "
                         + $"which is supported by {nameof(AttributeCompilerUnionExtensions.Convert)}.");
