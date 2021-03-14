@@ -1,5 +1,5 @@
+#nullable enable
 using System;
-using System.Drawing;
 using DotNetGraph.Attributes;
 using DotNetGraph.Core;
 
@@ -72,8 +72,8 @@ namespace DotNetGraph.Edge
 
         public DotEdge(IDotElement left, IDotElement right)
         {
-            Left = left ?? throw new ArgumentNullException(nameof(left));
-            Right = right ?? throw new ArgumentNullException(nameof(right));
+            _left = left ?? throw new ArgumentNullException(nameof(left));
+            _right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
         public DotEdge(string left, string right)
@@ -90,8 +90,8 @@ namespace DotNetGraph.Edge
             if (string.IsNullOrWhiteSpace(right))
                 throw new ArgumentException("Node cannot be empty", nameof(right));
 
-            Left = new DotString(left);
-            Right = new DotString(right);
+            _left = new DotString(left);
+            _right = new DotString(right);
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using DotNetGraph.Attributes;
 
 namespace DotNetGraph.Core
 {
@@ -11,7 +10,7 @@ namespace DotNetGraph.Core
 
         private readonly Dictionary<string, IDotAttribute> _attributes;
 
-        public DotElementWithAttributes(string identifier = null, DotColorAttribute color = null)
+        protected DotElementWithAttributes()
         {
             _attributes = new Dictionary<string, IDotAttribute>();
         }

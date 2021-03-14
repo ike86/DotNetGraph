@@ -1,4 +1,3 @@
-using DotNetGraph.Core;
 using DotNetGraph.Node;
 
 namespace DotNetGraph.Attributes

@@ -10,6 +10,6 @@ namespace DotNetGraph.Extensions
 
         public bool ShouldFormatStrings { get; set; }
 
-        public Action<ICollection<IAttributeCompilerUnion>> ConfigureAttributeCompilers { get; set; } = x => { };
+        public Action<ICollection<IAttributeCompilerUnion>> ConfigureAttributeCompilers { get; set; } = _ => { };
     }
 }
