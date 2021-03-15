@@ -259,33 +259,12 @@ namespace DotNetGraph.Tests.Edge
         }
 
         [Fact]
-        public void EdgeWithNullNodesThrowsException()
-        {
-            var node = new DotNode("example");
-
-            Check.ThatCode(() => new DotEdge(null, node)).Throws<ArgumentNullException>();
-            Check.ThatCode(() => new DotEdge(node, null)).Throws<ArgumentNullException>();
-
-            Check.ThatCode(() => new DotEdge(null, "test")).Throws<ArgumentNullException>();
-            Check.ThatCode(() => new DotEdge("test", null)).Throws<ArgumentNullException>();
-        }
-
-        [Fact]
         public void EdgeWithEmptyNodeIdentifierThrowsException()
         {
             Check.ThatCode(() => new DotEdge(string.Empty, "test")).Throws<ArgumentException>();
             Check.ThatCode(() => new DotEdge(" ", "test")).Throws<ArgumentException>();
             Check.ThatCode(() => new DotEdge("test", string.Empty)).Throws<ArgumentException>();
             Check.ThatCode(() => new DotEdge("test", " ")).Throws<ArgumentException>();
-        }
-
-        [Fact]
-        public void ModifyEdgeWithNullNodesThrowsException()
-        {
-            var edge = new DotEdge(new DotNode("left"), new DotNode("right"));
-
-            Check.ThatCode(() => edge.Left = null).Throws<ArgumentNullException>();
-            Check.ThatCode(() => edge.Right = null).Throws<ArgumentNullException>();
         }
     }
 }
